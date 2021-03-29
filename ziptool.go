@@ -5,7 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 )
@@ -14,7 +13,7 @@ func archiveInternal(dst, src string) (bool, error) {
 	fileCreated := false
 
 	// 出力するファイルの保存先ディレクトリがなければ作成
-	if err := os.MkdirAll(path.Dir(dst), 0777); err != nil {
+	if err := os.MkdirAll(filepath.Dir(dst), 0777); err != nil {
 		return fileCreated, err
 	}
 
@@ -37,7 +36,7 @@ func archiveInternal(dst, src string) (bool, error) {
 		return fileCreated, err
 	}
 
-	baseDir := path.Dir(src)
+	baseDir := filepath.Dir(src)
 
 	err = filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -88,14 +87,14 @@ func Unarchive(dst, zipFileSrc string) error {
 	defer r.Close()
 
 	for _, f := range r.File {
-		dstFilePath := path.Join(dst, f.Name)
+		dstFilePath := filepath.Join(dst, f.Name)
 
 		// 出力するファイルの保存先ディレクトリがなければ作成
-		if err := os.MkdirAll(path.Dir(dstFilePath), 0777); err != nil {
+		if err := os.MkdirAll(filepath.Dir(dstFilePath), 0777); err != nil {
 			return err
 		}
 
-		dstFile, err := os.Create(path.Join(dst, f.Name))
+		dstFile, err := os.Create(filepath.Join(dst, f.Name))
 		if err != nil {
 			return err
 		}
