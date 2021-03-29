@@ -5,12 +5,16 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
 
 func archiveInternal(dst, src string) (bool, error) {
 	fileCreated := false
+
+	// 内部的には/のパスで扱う
+	src = filepath.ToSlash(src)
 
 	// 出力するファイルの保存先ディレクトリがなければ作成
 	if err := os.MkdirAll(filepath.Dir(dst), 0777); err != nil {
@@ -31,14 +35,14 @@ func archiveInternal(dst, src string) (bool, error) {
 	src = strings.TrimSuffix(src, "/")
 
 	// アーカイブ対象が存在するか
-	_, err = os.Stat(src)
+	_, err = os.Stat(filepath.FromSlash(src))
 	if os.IsNotExist(err) {
 		return fileCreated, err
 	}
 
-	baseDir := filepath.Dir(src)
+	baseDir := path.Dir(src)
 
-	err = filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(filepath.FromSlash(src), func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -47,7 +51,7 @@ func archiveInternal(dst, src string) (bool, error) {
 			return nil
 		}
 
-		f, err := w.Create(strings.TrimPrefix(path, baseDir))
+		f, err := w.Create(strings.TrimPrefix(filepath.ToSlash(path), baseDir))
 		if err != nil {
 			return err
 		}
@@ -87,14 +91,15 @@ func Unarchive(dst, zipFileSrc string) error {
 	defer r.Close()
 
 	for _, f := range r.File {
-		dstFilePath := filepath.Join(dst, f.Name)
+		// Archiveで圧縮したファイルのパスは/で入っているため実行中プラットフォームの形式に変換
+		dstFilePath := filepath.Join(dst, filepath.FromSlash(f.Name))
 
 		// 出力するファイルの保存先ディレクトリがなければ作成
 		if err := os.MkdirAll(filepath.Dir(dstFilePath), 0777); err != nil {
 			return err
 		}
 
-		dstFile, err := os.Create(filepath.Join(dst, f.Name))
+		dstFile, err := os.Create(dstFilePath)
 		if err != nil {
 			return err
 		}
