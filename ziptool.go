@@ -51,7 +51,8 @@ func archiveInternal(dst, src string) (bool, error) {
 			return nil
 		}
 
-		f, err := w.Create(strings.TrimPrefix(filepath.ToSlash(path), baseDir))
+		pathName := "." + strings.TrimPrefix(filepath.ToSlash(path), baseDir)
+		f, err := w.Create(pathName)
 		if err != nil {
 			return err
 		}
