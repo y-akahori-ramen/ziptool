@@ -40,7 +40,8 @@ func archiveInternal(dst, src string) (bool, error) {
 		return fileCreated, err
 	}
 
-	baseDir := path.Dir(src)
+	// srcの末尾には/がついていないため付与。皇族のTrimPrefixで/まで含めて取り除いたパスで取り除きたいため
+	baseDir := path.Dir(src) + "/"
 
 	err = filepath.Walk(filepath.FromSlash(src), func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -51,7 +52,7 @@ func archiveInternal(dst, src string) (bool, error) {
 			return nil
 		}
 
-		pathName := "." + strings.TrimPrefix(filepath.ToSlash(path), baseDir)
+		pathName := strings.TrimPrefix(filepath.ToSlash(path), baseDir)
 		f, err := w.Create(pathName)
 		if err != nil {
 			return err
